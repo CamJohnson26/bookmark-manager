@@ -29,6 +29,18 @@ def db_record_to_url_record(db_record):
     }
 
 
+def url_record_to_db_record(db_record):
+    return [
+        db_record["id"],
+        db_record["created_at"],
+        db_record["url"],
+        db_record["title"],
+        db_record["text"],
+        db_record["html"],
+    ]
+
+
+
 def get_text_from_html(html):
     soup = BeautifulSoup(html, features="lxml")
     text = soup.get_text().split('\n')
@@ -36,17 +48,25 @@ def get_text_from_html(html):
     return text
 
 
+def get_title_from_html(html):
+    soup = BeautifulSoup(html, features="lxml")
+
+    if (soup.title is not None):
+        return soup.title.get_text()
+    else:
+        return "No title found"
+
+
 def fetch_url(url):
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0",
     }
     html = requests.get(url, headers=headers)
-    return html.text
 
+    # Fixes this bug: https://stackoverflow.com/questions/57371164/django-postgres-a-string-literal-cannot-contain-nul-0x00-characters
+    text = html.text.replace('\x00', '')
 
-def crawl_urls(urls):
-    for url in urls:
-        print(get_text_from_html(fetch_url(url)))
+    return text
 
 
 def read_urls_from_file():
@@ -56,7 +76,53 @@ def read_urls_from_file():
     return [l.strip() for l in lines]
 
 
-# print(read_urls_from_file())
+def wipe_ingest_file():
+    filename = "ingest.txt"
+    with open(filename, 'w') as f:
+        print(f"Wiped Ingest File")
+        f.write("")
+
+
+def update_record(url):
+    db_record = url_record_to_db_record(url)
+    cursor = database.cursor()
+    cursor.execute("UPDATE url SET title = %s, text = %s, html = %s WHERE id = %s", [db_record[3], db_record[4], db_record[5], db_record[0]])
+    database.commit()
+
+
+def create_record(url):
+    cursor = database.cursor()
+    cursor.execute("INSERT INTO url (id, created_at, url, title, text, html) VALUES (DEFAULT, DEFAULT, %s, %s, %s, %s)", [url, None, None, None])
+    database.commit()
+    print(f"Created: {url}")
+
+
+def create_new_urls(urls):
+    for url in urls:
+        create_record(url)
+
+
+def fill_in_missing_fields(urls):
+    for url in urls:
+        html = ""
+        if (not url["title"] or not url["text"] or not url["html"]):
+            print(f"Fetched {url}")
+            html = fetch_url(url["url"])
+        if (not url["html"]):
+            url["html"] = html
+        if (not url["title"]):
+            url["title"] = get_title_from_html(html)
+        if (not url["text"]):
+            url["text"] = get_text_from_html(html)
+
+
+ingest_urls = read_urls_from_file()
+create_new_urls(ingest_urls)
+wipe_ingest_file()
+
 urls = get_all_urls()
-print(urls)
-crawl_urls([u["url"] for u in urls])
+print(fill_in_missing_fields(urls))
+
+for url in urls:
+    update_record(url)
+    print(f"Updated: {url}")
