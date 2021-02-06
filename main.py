@@ -55,8 +55,8 @@ def url_record_to_db_record(db_record):
         db_record["created_at"],
         db_record["url"],
         db_record["title"],
-        db_record["text"],
-        db_record["html"],
+        db_record.get("text", None),
+        db_record.get("html", None),
         db_record["summary"],
     ]
 
@@ -102,7 +102,7 @@ def fetch_url(url):
         print(f"Couldn't fetch {url}")
         filename = "errors.txt"
         with open(filename, 'a') as f:
-            f.writelines([url])
+            f.write(f"{url}\n")
         return ''
 
 
@@ -146,8 +146,12 @@ def update_record(url):
     if url["dirty"]:
         db_record = url_record_to_db_record(url)
         cursor = database.cursor()
-        cursor.execute("UPDATE url SET title = %s, text = %s, html = %s, summary = %s WHERE id = %s", [db_record[3], db_record[4], db_record[5], db_record[6], db_record[0]])
+        if db_record[4] is not None or db_record[5] is not None:
+            cursor.execute("UPDATE url SET title = %s, text = %s, html = %s, summary = %s WHERE id = %s", [db_record[3], db_record[4], db_record[5], db_record[6], db_record[0]])
+        else:
+            cursor.execute("UPDATE url SET title = %s, summary = %s WHERE id = %s", [db_record[3], db_record[6], db_record[0]])
         database.commit()
+        print(f"Updated: {url['url']}")
 
 
 def create_record(url):
@@ -184,12 +188,26 @@ def fill_in_missing_fields(urls):
 
 def fill_in_summary_field(urls):
     for url in urls:
-        text = url["text"]
-        if url["summary"] is None and (text is not None):
+        if url["summary"] is None:
+            html = fetch_url(url["url"])
+            text = get_text_from_html(html)
             summary = get_summary(text)
             url["summary"] = summary
             print(f"Summarized {url['url']}: {summary}")
             url["dirty"] = True
+
+
+def fill_missing_database_info():
+    urls = get_all_urls()
+    fill_in_missing_fields(urls)
+
+    for url in urls:
+        update_record(url)
+
+    fill_in_summary_field(urls)
+    for url in urls:
+        update_record(url)
+        print(f"Updated: {url}")
 
 
 def download_pdf_url(url):
@@ -217,21 +235,12 @@ for new_url in new_urls:
 print(f"{len(new_urls)} new urls found, {len(existing_urls)} existing.")
 
 batches = list(batch(new_urls, 50))
+fill_missing_database_info()
+
 index = 0
 for batch in batches:
     create_new_urls(batch)
-
-    urls = get_all_urls()
-    fill_in_missing_fields(urls)
-
-    for url in urls:
-        update_record(url)
-        print(f"Updated: {url}")
-
-    fill_in_summary_field(urls)
-    for url in urls:
-        update_record(url)
-        print(f"Updated: {url}")
+    fill_missing_database_info()
 
     index += 1
     print(f"Batch {index} of {len(batches)} completed")

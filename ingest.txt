@@ -2495,10 +2495,9 @@ https://www.nytimes.com/2016/11/02/opinion/campaign-stops/from-roe-to-trump.html
 https://www.theatlantic.com/politics/archive/2016/06/trump-born-again/489269/
 https://www.bloomberg.com/opinion/articles/2016-11-29/donald-trump-the-first-president-of-our-post-literate-age
 https://www.nytimes.com/2016/07/16/nyregion/chris-christie-lost-out-on-the-job-he-wanted-and-his-bad-year-got-worse.html
-http://localhost:3001/admin/1/medias/188
 https://www.buzzfeednews.com/article/annehelenpetersen/we-are-all-classists#1rfzq51
-https://firefox-replay.com/
-https://www.killedbypolice.info/4838
+https://developer.mozilla.org/en-US/docs/Mozilla/Projects/WebReplay
+https://www.killedbypolice.net
 https://mobile.twitter.com/ShaanVP/status/1356129836884889601
 https://mobile.twitter.com/SahilBloom/status/1301209639741161473
 https://mobile.twitter.com/SahilBloom/status/1356256980776566786
@@ -2517,7 +2516,6 @@ https://en.m.wikipedia.org/wiki/Gaslightinghttps://medium.com/techbasics/find-th
 https://guzey.com/productivity/
 https://archive.org/details/33C3-Shut_Up_and_Take_My_Money
 https://www.realclearmarkets.com/articles/MarHedge.pdf
-https://www.nytimes.com/interactive/2017/10/20/climate/iceland-trees-reforestation.html
 https://www.bankofengland.co.uk/-/media/boe/files/quarterly-bulletin/2014/money-creation-in-the-modern-economy.pdf
 https://www.amazon.com/Thinking-FORTH-philosophy-1984-01-01-Paperback/dp/B012YWPNZI
 https://stratos.seas.harvard.edu/files/stratos/files/periodictabledatastructures.pdf
@@ -2539,7 +2537,7 @@ http://cs229.stanford.edu/section/cs229-hmm.pdf
 http://martin.zinkevich.org/rules_of_ml/rules_of_ml.pdf
 https://alexgkendall.com/computer_vision/have_we_forgotten_about_geometry_in_computer_vision/
 http://rkka21.ru/docs/turing-award/jb1977e.pdf
-https://pdfs.semanticscholar.org/e2dd/31c7db68667f1485f80d0e5a3ebb65fd960d.pdf
+http://www.chrest.info/fg/preprints/Training_in_chess.PDF
 http://www.phontron.com/slides/nlp-programming-en-12-depend.pdf
 https://www.cs.toronto.edu/~tang/papers/dlsvm.pdf
 https://cs.ccsu.edu/~markov/weka-tutorial.pdf
