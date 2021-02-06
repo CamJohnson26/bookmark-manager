@@ -106,6 +106,28 @@ def wipe_ingest_file():
         f.write("")
 
 
+def deduplicate_ingest_file():
+    filename = "ingest.txt"
+    with open(filename) as f:
+        lines = f.readlines()
+    found = {}
+    duplicates = {}
+    lines = [l.strip() for l in lines]
+    new_file = ""
+    for line in lines:
+        if not found.get(line) is True:
+            found[line] = True
+            new_file += f"{line}\n"
+        else:
+            duplicates[line] = 1 + duplicates.get(line, 0)
+    print(f"Removed {len(duplicates.keys())} duplicate urls")
+    for key in duplicates.keys():
+        print(f"{duplicates[key]} instances of {key}")
+    with open(filename, 'w') as f:
+        print("Rewrote ingest file")
+        f.write(new_file[:-1])
+
+
 def update_record(url):
     if url["dirty"]:
         db_record = url_record_to_db_record(url)
@@ -155,6 +177,8 @@ def fill_in_summary_field(urls):
             print(f"Summarized {url['url']}: {summary}")
             url["dirty"] = True
 
+
+deduplicate_ingest_file()
 
 ingest_urls = read_urls_from_file()
 existing_urls = [url["url"] for url in get_all_urls()]
