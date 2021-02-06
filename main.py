@@ -1,4 +1,7 @@
 import re
+
+from pdfminer.high_level import extract_text_to_fp
+
 print("Loading NLP tools and database...")
 
 from dotenv import load_dotenv
@@ -8,7 +11,8 @@ from transformers import pipeline
 import os
 import psycopg2
 import requests
-
+from io import StringIO
+from pdfminer.layout import LAParams
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -17,9 +21,6 @@ database = psycopg2.connect(DATABASE_URL)
 summarization = pipeline("summarization")
 
 print("NLP tools loaded")
-
-# https://www.elie.net/blog/security/fuller-house-exposing-high-end-poker-cheating-devices
-# https://www.elie.net/blog/security/fuller-house-exposing-high-end-poker-cheating-devices
 
 def batch(iterable, n=1):
     l = len(iterable)
@@ -81,14 +82,27 @@ def fetch_url(url):
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0",
     }
     try:
-        html = requests.get(url, headers=headers, timeout=10)
+        if (url[-4:] == ".pdf"):
+            return download_pdf_url(url)
+        else:
+            html = requests.get(url, headers=headers, timeout=10)
 
-        # Fixes this bug: https://stackoverflow.com/questions/57371164/django-postgres-a-string-literal-cannot-contain-nul-0x00-characters
-        text = html.text.replace('\x00', '')
+            # Fixes this bug: https://stackoverflow.com/questions/57371164/django-postgres-a-string-literal-cannot-contain-nul-0x00-characters
+            html = html.text.replace('\x00', '')
 
-        return text
-    except (requests.HTTPError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout, requests.exceptions.TooManyRedirects, requests.exceptions.SSLError, requests.exceptions.ConnectionError):
+            return html
+    except (
+        requests.HTTPError,
+        requests.exceptions.ReadTimeout,
+        requests.exceptions.ConnectTimeout,
+        requests.exceptions.TooManyRedirects,
+        requests.exceptions.SSLError,
+        requests.exceptions.ConnectionError
+    ):
         print(f"Couldn't fetch {url}")
+        filename = "errors.txt"
+        with open(filename, 'a') as f:
+            f.writelines([url])
         return ''
 
 
@@ -176,6 +190,19 @@ def fill_in_summary_field(urls):
             url["summary"] = summary
             print(f"Summarized {url['url']}: {summary}")
             url["dirty"] = True
+
+
+def download_pdf_url(url):
+    headers = {
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0",
+    }
+    html = requests.get(url, headers=headers, timeout=10).content
+    with open('temp.pdf', 'wb') as f:
+        f.write(html)
+    output_string = StringIO()
+    with open('temp.pdf', 'rb') as f:
+        extract_text_to_fp(f, output_string, laparams=LAParams(), output_type='html', codec=None)
+    return output_string.getvalue().strip()
 
 
 deduplicate_ingest_file()
