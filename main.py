@@ -1,4 +1,5 @@
 import re
+print("Loading NLP tools and database...")
 
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
@@ -8,12 +9,17 @@ import os
 import psycopg2
 import requests
 
+
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 database = psycopg2.connect(DATABASE_URL)
 
 summarization = pipeline("summarization")
 
+print("NLP tools loaded")
+
+# https://www.elie.net/blog/security/fuller-house-exposing-high-end-poker-cheating-devices
+# https://www.elie.net/blog/security/fuller-house-exposing-high-end-poker-cheating-devices
 
 def batch(iterable, n=1):
     l = len(iterable)
@@ -23,7 +29,7 @@ def batch(iterable, n=1):
 
 def get_all_urls():
     cursor = database.cursor()
-    cursor.execute("SELECT * FROM url")
+    cursor.execute("SELECT id, created_at, url, title, summary FROM url")
     records = cursor.fetchall()
     print(f"Fetched {len(records)} records")
     return [db_record_to_url_record(r) for r in records]
@@ -35,9 +41,9 @@ def db_record_to_url_record(db_record):
         "created_at": db_record[1],
         "url": db_record[2],
         "title": db_record[3],
-        "text": db_record[4],
-        "html": db_record[5],
-        "summary": db_record[6],
+        "summary": db_record[4],
+        # "text": db_record[4],
+        # "html": db_record[5],
         "dirty": False
     }
 
@@ -131,15 +137,12 @@ def create_new_urls(urls):
 def fill_in_missing_fields(urls):
     for url in urls:
         html = ""
-        if (not url["title"] or not url["text"] or not url["html"]):
+        if not url["title"]:
             print(f"Fetched {url}")
             html = fetch_url(url["url"])
             url["dirty"] = True
-        if (not url["html"]):
             url["html"] = html
-        if (not url["title"]):
             url["title"] = get_title_from_html(html)
-        if (not url["text"]):
             url["text"] = get_text_from_html(html)
 
 
@@ -154,10 +157,16 @@ def fill_in_summary_field(urls):
 
 
 ingest_urls = read_urls_from_file()
+existing_urls = [url["url"] for url in get_all_urls()]
+new_urls = [url for url in ingest_urls if url not in existing_urls]
 
-batches = list(batch(ingest_urls, 50))
+for new_url in new_urls:
+    print(new_url)
+
+print(f"{len(new_urls)} new urls found, {len(existing_urls)} existing.")
+
+batches = list(batch(new_urls, 50))
 index = 0
-
 for batch in batches:
     create_new_urls(batch)
 
@@ -175,5 +184,3 @@ for batch in batches:
 
     index += 1
     print(f"Batch {index} of {len(batches)} completed")
-
-wipe_ingest_file()
