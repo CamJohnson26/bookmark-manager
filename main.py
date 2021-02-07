@@ -2,6 +2,8 @@ import re
 
 from pdfminer.high_level import extract_text_to_fp
 
+from selenium_download import get_html_selenium
+
 print("Loading NLP tools and database...")
 
 from dotenv import load_dotenv
@@ -82,6 +84,8 @@ def fetch_url(url):
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0",
     }
     try:
+        if (url.startswith('https://twitter.com') or url.startswith("https://mobile.twitter.com")):
+            return get_html_selenium(url)
         if (url[-4:] == ".pdf"):
             return download_pdf_url(url)
         else:
