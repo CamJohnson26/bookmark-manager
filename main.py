@@ -1,6 +1,7 @@
 import re
 
 from pdfminer.high_level import extract_text_to_fp
+from pdfminer.pdfparser import PDFSyntaxError
 
 from selenium_download import get_html_selenium
 
@@ -223,7 +224,12 @@ def download_pdf_url(url):
         f.write(html)
     output_string = StringIO()
     with open('temp.pdf', 'rb') as f:
-        extract_text_to_fp(f, output_string, laparams=LAParams(), output_type='html', codec=None)
+        try:
+            extract_text_to_fp(f, output_string, laparams=LAParams(), output_type='html', codec=None);
+        except (
+            PDFSyntaxError
+        ):
+            print('Could not read this pdf')
     return output_string.getvalue().strip()
 
 
