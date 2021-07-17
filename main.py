@@ -10,6 +10,7 @@ print("Loading NLP tools and database...")
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from transformers import pipeline
+print("Loading other tools...")
 
 import os
 import psycopg2
