@@ -169,10 +169,13 @@ def create_record(url):
 
 def get_summary(text):
     # https://www.thepythoncode.com/article/text-summarization-using-huggingface-transformers-python
-    if len(text) >= 1024:
-        text = text[:1024]
-    summary = summarization(text)[0]['summary_text']
-    return summary
+    try:
+        if len(text) >= 1024:
+            text = text[:1024]
+        summary = summarization(text, )[0]['summary_text']
+        return summary
+    except:
+        return "Error occurred in summarization"
 
 
 def create_new_urls(urls):
@@ -245,7 +248,9 @@ for new_url in new_urls:
 
 print(f"{len(new_urls)} new urls found, {len(existing_urls)} existing.")
 
-batches = list(batch(new_urls, 50))
+BATCH_SIZE = 50
+
+batches = list(batch(new_urls, BATCH_SIZE))
 fill_missing_database_info()
 
 index = 0
