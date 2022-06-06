@@ -36,7 +36,8 @@ function App() {
   const columns: GridColDef<Bookmark>[] = [
     { field: "id", headerName: "ID", width: 50, resizable: true, filterable: true },
     { field: "title", headerName: "Title", width: 500, resizable: true , filterable: true},
-    { field: "url", headerName: "URL", width: 300, resizable: true, filterable: true },
+    { field: "url", headerName: "URL", width: 300, resizable: true, filterable: true,
+    renderCell: (params) => (<a href={params.row.url}>{params.row.url}</a>)},
     { field: "summary", headerName: "Summary", width: 1000, resizable: true, filterable: true },
     { field: "created_at", headerName: "Created At", width: 150, resizable: true , filterable: true},
   ];
