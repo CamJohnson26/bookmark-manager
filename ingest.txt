@@ -3375,3 +3375,4 @@ https://news.ycombinator.com/item?id=32186203
 https://blog.boot.dev/cryptography/how-sha-2-works-step-by-step-sha-256/
 https://packetpushers.net/ubuntu-extend-your-default-lvm-space/#:~:text=To%20use%20up%20that%20free,to%20make%20sure%20it%20changed
 https://thequantitative.medium.com/resize-an-encrypted-partition-without-breaking-your-linux-system-6ef475619745
+https://llamasandmystegosaurus.blogspot.com/2017/05/alpha.html?m=1
