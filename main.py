@@ -4,6 +4,7 @@ from pdfminer.high_level import extract_text_to_fp
 from pdfminer.pdfdocument import PDFEncryptionError
 from pdfminer.pdfparser import PDFSyntaxError
 
+from record_convert import db_record_to_url_record, url_record_to_db_record
 from selenium_download import get_html_selenium
 
 print("Loading NLP tools and database...")
@@ -13,14 +14,23 @@ from bs4 import BeautifulSoup
 from transformers import pipeline
 print("Loading other tools...")
 
-import os
 import psycopg2
 import requests
 from io import StringIO
 from pdfminer.layout import LAParams
+import pika, sys, os
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+RABBITMQ_URL = os.getenv("RABBITMQ_URL")
+RABBITMQ_PORT = os.getenv("RABBITMQ_PORT")
+RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
+
+BOOKMARK_INGEST_QUEUE_NAME = 'bookmark_ingest'
+BOOKMARK_UPDATE_SUMMARY_QUEUE_NAME = 'bookmark_update_summary'
+
 database = psycopg2.connect(DATABASE_URL)
 
 summarization = pipeline("summarization")
@@ -41,29 +51,17 @@ def get_all_urls():
     return [db_record_to_url_record(r) for r in records]
 
 
-def db_record_to_url_record(db_record):
-    return {
-        "id": db_record[0],
-        "created_at": db_record[1],
-        "url": db_record[2],
-        "title": db_record[3],
-        "summary": db_record[4],
-        # "text": db_record[4],
-        # "html": db_record[5],
-        "dirty": False
-    }
-
-
-def url_record_to_db_record(db_record):
-    return [
-        db_record["id"],
-        db_record["created_at"],
-        db_record["url"],
-        db_record["title"],
-        db_record.get("text", None),
-        db_record.get("html", None),
-        db_record["summary"],
-    ]
+def get_url(url):
+    cursor = database.cursor()
+    cursor.execute("SELECT id, created_at, url, title, summary FROM url WHERE url = %s", [str(url)])
+    records = cursor.fetchall()
+    record = records[0] if len(records) > 0 else None
+    if record is not None:
+        print(f"Fetched {len(record)} records")
+        return db_record_to_url_record(record)
+    else:
+        print(f"Couldn't find {url}")
+        return None
 
 
 def get_text_from_html(html):
@@ -113,40 +111,11 @@ def fetch_url(url):
         return ''
 
 
-def read_urls_from_file():
-    filename = "ingest.txt"
-    with open(filename) as f:
-        lines = f.readlines()
-    return [l.strip() for l in lines]
-
-
 def wipe_ingest_file():
     filename = "ingest.txt"
     with open(filename, 'w') as f:
         print(f"Wiped Ingest File")
         f.write("")
-
-
-def deduplicate_ingest_file():
-    filename = "ingest.txt"
-    with open(filename) as f:
-        lines = f.readlines()
-    found = {}
-    duplicates = {}
-    lines = [l.strip() for l in lines]
-    new_file = ""
-    for line in lines:
-        if not found.get(line) is True:
-            found[line] = True
-            new_file += f"{line}\n"
-        else:
-            duplicates[line] = 1 + duplicates.get(line, 0)
-    print(f"Removed {len(duplicates.keys())} duplicate urls")
-    for key in duplicates.keys():
-        print(f"{duplicates[key]} instances of {key}")
-    with open(filename, 'w') as f:
-        print("Rewrote ingest file")
-        f.write(new_file[:-1])
 
 
 def update_record(url):
@@ -207,19 +176,6 @@ def fill_in_summary_field(urls):
             url["dirty"] = True
 
 
-def fill_missing_database_info():
-    urls = get_all_urls()
-    fill_in_missing_fields(urls)
-
-    for url in urls:
-        update_record(url)
-
-    fill_in_summary_field(urls)
-    for url in urls:
-        update_record(url)
-        print(f"Updated: {url}")
-
-
 def download_pdf_url(url):
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0",
@@ -238,26 +194,63 @@ def download_pdf_url(url):
     return output_string.getvalue().strip()
 
 
-deduplicate_ingest_file()
+def main():
+    credentials = pika.credentials.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD, erase_on_connect=False)
 
-ingest_urls = read_urls_from_file()
-existing_urls = [url["url"] for url in get_all_urls()]
-new_urls = [url for url in ingest_urls if url not in existing_urls]
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_URL, port=RABBITMQ_PORT, credentials=credentials))
+    channel = connection.channel()
 
-for new_url in new_urls:
-    print(new_url)
+    channel.queue_declare(queue=BOOKMARK_INGEST_QUEUE_NAME)
+    channel.queue_declare(queue=BOOKMARK_UPDATE_SUMMARY_QUEUE_NAME)
 
-print(f"{len(new_urls)} new urls found, {len(existing_urls)} existing.")
+    def ingest_callback(ch, method, properties, body):
+        url_str = body.decode('utf-8')
+        try:
+            create_record(url_str)
+            channel.basic_publish(exchange='', routing_key=BOOKMARK_UPDATE_SUMMARY_QUEUE_NAME, body=body)
+        except Exception as e:
+            channel.basic_publish(exchange='', routing_key=BOOKMARK_INGEST_QUEUE_NAME, body=body)
+            print( f'Error occurred with Ingest: {str(body)} {e}')
+            raise f'Error occurred with Ingest'
 
-BATCH_SIZE = 50
+        print(" [x] Received ingest %r" % url_str)
 
-batches = list(batch(new_urls, BATCH_SIZE))
-fill_missing_database_info()
+    def update_summary_callback(ch, method, properties, body):
+        try:
+            url_str = body.decode('utf-8')
+            url = get_url(url_str)
+            if url is None:
+                # raise "An error occurred, filling info on non existing url"
 
-index = 0
-for batch in batches:
-    create_new_urls(batch)
-    fill_missing_database_info()
+                print(f'{url_str} not found. Creating.')
+                channel.basic_publish(exchange='', routing_key=BOOKMARK_INGEST_QUEUE_NAME, body=body)
+            else:
+                fill_in_missing_fields([url])
+                update_record(url)
+                fill_in_summary_field([url])
+                update_record(url)
+                print('Updated Summary info for ', url_str)
+        except Exception as e:
+            channel.basic_publish(exchange='', routing_key=BOOKMARK_UPDATE_SUMMARY_QUEUE_NAME, body=body)
+            print(f'Error with Update Summary: {url_str} {e}')
+            raise f'Error occurred with Update Summary'
 
-    index += 1
-    print(f"Batch {index} of {len(batches)} completed")
+        # fill_in_summary_field([body])
+        # update_record(body)
+        print(" [x] Received update record %r" % url_str)
+
+    channel.basic_consume(queue=BOOKMARK_UPDATE_SUMMARY_QUEUE_NAME, on_message_callback=update_summary_callback, auto_ack=True)
+    channel.basic_consume(queue=BOOKMARK_INGEST_QUEUE_NAME, on_message_callback=ingest_callback, auto_ack=True)
+
+    print(' [*] Waiting for messages. To exit press CTRL+C')
+    channel.start_consuming()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Interrupted')
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
