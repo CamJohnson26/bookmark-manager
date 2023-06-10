@@ -1,9 +1,9 @@
 import asyncio
 from threading import Thread
 
-from ingest_url_queue import get_bookmark_manager_ingest_url_queue
-from summarize_url_queue import get_bookmark_manager_summarize_url_queue
-from rabbitmq import setup_rabbitmq
+from bookmark_library.queue.rabbitmq import setup_rabbitmq
+from bookmark_library.queue.workers.ingest_url_queue import get_bookmark_manager_ingest_url_queue
+from bookmark_library.queue.workers.summarize_url_queue import get_bookmark_manager_summarize_url_queue
 
 
 def initiate_background_tasks():

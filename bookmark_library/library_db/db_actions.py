@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 import os
 
 from bookmark_library.library_db.queries.create_record_query import create_record_query
-from bookmark_library.library_db.queries.get_url import get_url_query
+
+from bookmark_library.library_db.queries.get_all_urls_query import get_all_urls_query
+from bookmark_library.library_db.queries.get_url_query import get_url_query
 from bookmark_library.library_db.queries.update_record_query import update_record_query
 
 load_dotenv()
@@ -23,3 +25,6 @@ def update_record(url):
 
 def get_url(url):
     return get_url_query(url, database)
+
+def get_all_urls():
+    return get_all_urls_query(database)

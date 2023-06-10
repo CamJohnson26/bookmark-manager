@@ -1,3 +1,4 @@
+import os
 import requests
 from io import StringIO
 from pdfminer.layout import LAParams
@@ -22,4 +23,7 @@ def fetch_pdf_url(url):
             PDFSyntaxError, PDFEncryptionError
         ):
             print('Could not read this pdf')
-    return output_string.getvalue().strip()
+    rv = output_string.getvalue().strip()
+
+    os.remove('temp.pdf')
+    return rv

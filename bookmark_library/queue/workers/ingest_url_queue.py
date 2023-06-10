@@ -5,7 +5,7 @@ import aio_pika
 
 from bookmark_library.library_db.db_actions import create_record
 from bookmark_library.queue.queue_names import SUMMARIZE_URL_QUEUE_NAME, INGEST_URL_QUEUE_NAME
-from rabbitmq import publish_message
+from bookmark_library.queue.rabbitmq import publish_message
 
 
 async def bookmark_manager_ingest_url_callback(message: aio_pika.IncomingMessage):

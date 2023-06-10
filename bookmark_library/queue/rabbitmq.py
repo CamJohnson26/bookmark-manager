@@ -71,15 +71,15 @@ async def setup_rabbitmq(loop: asyncio.AbstractEventLoop, queues: list[tuple[str
     channel = await connection.channel()
 
     # Declare the dead letter exchange
-    dead_letter_exchange = await channel.declare_exchange('dead_letter_exchange', aio_pika.ExchangeType.FANOUT)
+    dead_letter_exchange = await channel.declare_exchange('dead_letter_exchange', aio_pika.ExchangeType.DIRECT)
 
     for queue_name, callback in queues:
         # Declare the dead letter queue and bind it to the dead letter exchange
         dead_letter_queue = await channel.declare_queue(f'dead_letter_queue_{queue_name}')
-        await dead_letter_queue.bind(dead_letter_exchange)
+        await dead_letter_queue.bind(dead_letter_exchange, routing_key=queue_name)
         queue = await channel.declare_queue(queue_name, arguments={
             'x-dead-letter-exchange': 'dead_letter_exchange',
-            'x-dead-letter-routing-key': f'dead_letter_queue_{queue_name}'
+            'x-dead-letter-routing-key': queue_name
         })
         await queue.consume(callback)
 

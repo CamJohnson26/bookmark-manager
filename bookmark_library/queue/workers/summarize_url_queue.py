@@ -7,8 +7,7 @@ from bookmark_library.get_url_base_fields import get_url_base_fields
 from bookmark_library.get_url_summary_fields import get_url_summary_fields
 from bookmark_library.library_db.db_actions import get_url, update_record
 from bookmark_library.queue.queue_names import INGEST_URL_QUEUE_NAME, SUMMARIZE_URL_QUEUE_NAME
-from rabbitmq import publish_message
-
+from bookmark_library.queue.rabbitmq import publish_message
 
 
 async def bookmark_manager_summarize_url_callback(message: aio_pika.IncomingMessage):

@@ -1,4 +1,4 @@
-from selenium_download import get_html_selenium
+from bookmark_library.page_crawler.selenium_download import get_html_selenium
 
 
 def fetch_url_selenium(url):

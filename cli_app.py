@@ -2,10 +2,11 @@ from cmd import Cmd
 
 from dotenv import load_dotenv
 
-from background_job import initiate_background_tasks
-from ingest_url_queue import INGEST_URL_QUEUE_NAME
-from rabbitmq import publish_message, retry_failed
-from summarize_url_queue import SUMMARIZE_URL_QUEUE_NAME
+
+from bookmark_library.bulk_ingest import bulk_ingest
+from bookmark_library.queue.background_job import initiate_background_tasks
+from bookmark_library.queue.queue_names import INGEST_URL_QUEUE_NAME, SUMMARIZE_URL_QUEUE_NAME
+from bookmark_library.queue.rabbitmq import publish_message, retry_failed
 
 load_dotenv()
 
@@ -25,6 +26,10 @@ class CLIApp(Cmd):
             publish_message(url, INGEST_URL_QUEUE_NAME)
             print(f"{url}")
             return
+
+    def do_bulk_ingest(self, args):
+        """Ingest a list of urls from the input/ingest.txt file."""
+        bulk_ingest()
 
     def do_retry_ingest(self, args):
         retry_failed(INGEST_URL_QUEUE_NAME)
