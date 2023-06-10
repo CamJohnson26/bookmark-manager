@@ -7,7 +7,10 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
-*/__pycache__/*
+**/__pycache__/**
+
+geckodriver.log
+temp.pdf
 
 .idea
 .env
