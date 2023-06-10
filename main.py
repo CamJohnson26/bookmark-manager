@@ -4,6 +4,7 @@ from pdfminer.high_level import extract_text_to_fp
 from pdfminer.pdfdocument import PDFEncryptionError
 from pdfminer.pdfparser import PDFSyntaxError
 
+from bookmark_library.library_db.db_actions import create_record
 from record_convert import db_record_to_url_record, url_record_to_db_record
 from selenium_download import get_html_selenium
 
@@ -128,13 +129,6 @@ def update_record(url):
             cursor.execute("UPDATE url SET title = %s, summary = %s WHERE id = %s", [db_record[3], db_record[6], db_record[0]])
         database.commit()
         print(f"Updated: {url['url']}")
-
-
-def create_record(url):
-    cursor = database.cursor()
-    cursor.execute("INSERT INTO url (id, created_at, url, title, text, html) VALUES (DEFAULT, DEFAULT, %s, %s, %s, %s)", [url, None, None, None])
-    database.commit()
-    print(f"Created: {url}")
 
 
 def get_summary(text):
