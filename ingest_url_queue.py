@@ -4,10 +4,8 @@
 import aio_pika
 
 from bookmark_library.library_db.db_actions import create_record
+from bookmark_library.queue.queue_names import SUMMARIZE_URL_QUEUE_NAME, INGEST_URL_QUEUE_NAME
 from rabbitmq import publish_message
-from summarize_url_queue import SUMMARIZE_URL_QUEUE_NAME
-
-INGEST_URL_QUEUE_NAME = 'bookmark_manager_ingest_url'
 
 
 async def bookmark_manager_ingest_url_callback(message: aio_pika.IncomingMessage):
@@ -16,7 +14,7 @@ async def bookmark_manager_ingest_url_callback(message: aio_pika.IncomingMessage
     This function will be called when a message is received from the queue."""
     try:
         url = message.body.decode()
-        print(f" [x] Received {url}")
+        print(f" [x] Ingest Received {url}")
         create_record(url)
         publish_message(url, SUMMARIZE_URL_QUEUE_NAME)
         await message.ack()
