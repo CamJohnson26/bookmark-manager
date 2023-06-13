@@ -1,3 +1,10 @@
+https://archive.ph/L2BSO
+https://en.m.wikipedia.org/wiki/Mountain_Meadows_Massacre
+https://www.entrepreneur.com/business-news/underground-cellar-bankrupt-owes-customers-millions-in-wine/451996
+https://okbjgm.weebly.com/uploads/3/1/5/0/31506003/11_laws_of_showrunning.pdf
+https://karpathy.ai/zero-to-hero.html
+https://www.amazon.com/Quality-Free-Certain-Becomes-Business/dp/0070145121
+https://www.slidebook.io/blog/article/on-the-road-to-failure/#db-7
 https://old.reddit.com/r/Android/comments/11nzrb0/samsung_space_zoom_moon_shots_are_fake_and_here/
 https://cointelegraph.com/news/usdc-depegs-as-circle-confirms-3-3b-stuck-with-silicon-valley-bank
 https://www.netinterest.co/p/the-demise-of-silicon-valley-bank
@@ -18,7 +25,6 @@ https://github.com/huggingface/diffusers/tree/main/src/diffusers/pipelines#examp
 https://bennycheung.github.io/stable-diffusion-training-for-embeddings
 https://blog.pragmaticengineer.com/typical-migration-approaches/
 https://course.fast.ai/Lessons/part2.html
-https://karpathy.ai/zero-to-hero.html
 https://zephoria.medium.com/resisting-deterministic-thinking-52ef8d78248c
 https://kevinyank.com/posts/on-endings-why-how-we-retired-elm-at-culture-amp/
 https://www.wired.com/story/dashcam-footage-shows-driverless-cars-cruise-waymo-clogging-san-francisco/
@@ -94,7 +100,6 @@ https://archive.is/tDYsY
 https://www.theverge.com/23604075/ai-chatbots-bing-chatgpt-intelligent-sentient-mirror-test
 https://engineering.fb.com/2023/02/06/ios/facebook-ios-app-architecture/
 https://slate.com/news-and-politics/2011/02/the-king-s-speech-raises-more-questions-about-stuttering-than-it-answers.html
-https://okbjgm.weebly.com/uploads/3/1/5/0/31506003/11_laws_of_showrunning.pdf
 https://slate.com/culture/2023/02/hanging-out-sheila-liming-book-friendship-crisis.html
 https://bradmunchen.substack.com/p/teslas-autopilotfsd-recall-is-a-major
 https://arxiv.org/pdf/2204.06745.pdf
