@@ -6,7 +6,8 @@
 * In a terminal window, run `python3 cli_app.py`
 * Type 'consume'. URLs will be consumed from ingest.txt and added to the database.
 * Check in the input/history file to version control.
-* If there were any errors, investigate and then run the retry commands
+* Watch RabbitMq at http://24.199.116.58/. If there were any errors, investigate and then run the retry commands
+* Verify results show up at book.camjohnson.me
 
 # Old notes
 Install python dev tools: `sudo apt-get install python3-dev`
