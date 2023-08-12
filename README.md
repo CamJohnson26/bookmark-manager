@@ -1,3 +1,14 @@
+
+# Usage
+* Run the cli app
+* Paste your new urls into ingest.txt
+* Type bulk ingest in the cli
+* In a terminal window, run `python3 cli_app.py`
+* Type 'consume'. URLs will be consumed from ingest.txt and added to the database.
+* Check in the input/history file to version control.
+* If there were any errors, investigate and then run the retry commands
+
+# Old notes
 Install python dev tools: `sudo apt-get install python3-dev`
 `sudo apt-get install build-essential`
 sudo apt install python2-dev
