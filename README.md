@@ -2,7 +2,7 @@
 # Usage
 * Run the cli app
 * Paste your new urls into ingest.txt
-* Type bulk ingest in the cli
+* Type bulk_ingest in the cli
 * In a terminal window, run `python3 cli_app.py`
 * Type 'consume'. URLs will be consumed from ingest.txt and added to the database.
 * Check in the input/history file to version control.
