@@ -5,7 +5,7 @@ import asyncio
 
 load_dotenv()
 
-
+print('Initializing...')
 async def main():
     # Initialize your background job or server here
 
