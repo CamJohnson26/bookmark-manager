@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 
 from bookmark_library.queue.background_job import initiate_background_tasks
 import asyncio
-import sys
 
 load_dotenv()
 
@@ -11,9 +10,11 @@ print('Initializing...')
 async def main():
 
     # Keep the event loop running
-    while True:
-        sys.stdout.flush()  # Explicitly flush output
-        await asyncio.sleep(3600)  # Sleep for an hour
+    # Create an Event to keep the script running
+    stop_event = asyncio.Event()
+
+    # Wait indefinitely
+    await stop_event.wait()
 
 
 if __name__ == '__main__':
