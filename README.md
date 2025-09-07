@@ -3,6 +3,7 @@
 
 ## Next Steps
 - [x] Implement health checks
+- [ ] No ollama error handling, and not using the recursive summarization
 - [ ] Move off of transformers to Ollama
 - [ ] Add tags to bookmark summary
 - [ ] Implement embeddings for comparisons

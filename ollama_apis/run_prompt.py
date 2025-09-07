@@ -12,13 +12,17 @@ client = Client(
 )
 
 def chat(prompt):
-    response = client.chat(model=DEFAULT_MODEL, messages=[
-      {
-        'role': 'user',
-        'content': prompt,
-      },
-    ])
-    return response['message']['content']
+    try:
+        response = client.chat(model=DEFAULT_MODEL, messages=[
+          {
+            'role': 'user',
+            'content': prompt,
+          },
+        ])
+        return response['message']['content']
+    except Exception as e:
+        print('Error during chat:', e)
+        raise e
 
 def embed(prompt, model=DEFAULT_MODEL):
     try:
