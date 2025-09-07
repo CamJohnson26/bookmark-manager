@@ -2,7 +2,7 @@
 # Bookmark Manager
 
 ## Next Steps
-- [ ] Implement health checks
+- [x] Implement health checks
 - [ ] Move off of transformers to Ollama
 - [ ] Add tags to bookmark summary
 - [ ] Implement embeddings for comparisons
@@ -33,6 +33,7 @@
    RABBITMQ_PORT=...
    RABBITMQ_USERNAME="..."
    RABBITMQ_PASSWORD="..."
+   HEALTHCHECK_URL="https://example.com/healthcheck"  # Optional: URL for healthcheck pings
    ```
 
 ## Deployment Steps
@@ -69,6 +70,16 @@ The application is set up to start automatically when the server boots up using 
 - Runs the application in the background
 - Automatically restarts the application if it crashes
 - Logs output to the app.log file in the application directory
+
+## Health Checks
+The application includes a periodic health check system that pings an external healthcheck endpoint every 15 minutes. This helps monitor that the application is still running properly.
+
+To use this feature:
+1. Set the `HEALTHCHECK_URL` environment variable to your healthcheck service URL (e.g., UptimeRobot, Healthchecks.io, or your own monitoring service)
+2. The application will automatically send a GET request to this URL every 15 minutes
+3. If the request fails, an error will be logged but the application will continue running
+
+If no `HEALTHCHECK_URL` is specified, a default URL is used (https://example.com/healthcheck) which serves as a no-op.
 
 ## Managing the Service
 You can manage the service using standard systemd commands:
