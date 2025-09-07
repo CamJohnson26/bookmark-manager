@@ -1,0 +1,17 @@
+[Unit]
+Description=Bookmark Manager Service
+After=network.target
+
+[Service]
+Type=simple
+User=USER_PLACEHOLDER
+WorkingDirectory=PATH_PLACEHOLDER
+Environment=PATH=PATH_PLACEHOLDER/.venv/bin:$PATH
+ExecStart=PATH_PLACEHOLDER/.venv/bin/python3 PATH_PLACEHOLDER/main.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:PATH_PLACEHOLDER/app.log
+StandardError=append:PATH_PLACEHOLDER/app.log
+
+[Install]
+WantedBy=multi-user.target

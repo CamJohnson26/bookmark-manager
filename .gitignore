@@ -15,3 +15,4 @@ temp.pdf
 .idea
 .env
 venv
+.env.production
