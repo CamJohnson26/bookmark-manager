@@ -144,9 +144,29 @@ Ok I'm pretty sure it's because I was running PyCharm through flatpak. Use the j
 
 # Bookmark Manager
 
-## RabbitMQ Setup
+## RabbitMQ Implementation
 
-If your RabbitMQ queues were deleted and the application is stuck at "[*] Setting up RabbitMQ connection and channel", you need to recreate:
+The application uses RabbitMQ for asynchronous processing of bookmarks. The implementation includes:
+
+1. **Connection Pooling**: Connections are reused to avoid the overhead of creating new connections for each message.
+2. **Automatic Reconnection**: The system automatically attempts to reconnect if the connection to RabbitMQ is lost.
+3. **Error Handling**: Comprehensive error handling with logging for better debugging.
+4. **Dead Letter Queues**: Failed messages are sent to dead letter queues for later inspection and retry.
+5. **Graceful Shutdown**: The system properly closes connections and channels during shutdown.
+
+### Testing RabbitMQ Connection
+
+You can test the RabbitMQ connection by running:
+
+```bash
+python tests/test_rabbitmq.py
+```
+
+This will test both the background task system and direct queue operations.
+
+### RabbitMQ Setup
+
+The application will automatically create the necessary queues and exchanges on startup. However, if you need to manually set them up or if the RabbitMQ server was reset, here's what you need to create:
 
 1. The main queues:
    - bookmark_manager_ingest_url
@@ -168,12 +188,26 @@ If your RabbitMQ queues were deleted and the application is stuck at "[*] Settin
      - x-dead-letter-exchange: dead_letter_exchange
      - x-dead-letter-routing-key: [queue name]
 
-You can recreate these using the RabbitMQ Management UI or via the command line.
+You can create these using the RabbitMQ Management UI or via the command line.
 
-## Management UI Steps:
+### Management UI Steps:
 1. Go to the Exchanges tab and add a new exchange named 'dead_letter_exchange' with type 'direct'
 2. Go to the Queues tab and add all four queues
 3. For each main queue, go to its page and add the arguments under the "Add binding" section
 4. For each dead letter queue, add a binding to the dead_letter_exchange with the corresponding routing key
 
-After recreating all these components, restart your application.
+### Retrying Failed Messages
+
+If messages end up in the dead letter queue, you can retry them using the `retry_failed` function:
+
+```python
+from bookmark_library.queue.rabbitmq import retry_failed
+
+# Retry failed messages for a specific queue
+retry_failed("bookmark_manager_ingest_url")
+retry_failed("bookmark_manager_summarize_url")
+```
+
+### Monitoring
+
+You can monitor the RabbitMQ queues using the RabbitMQ Management UI. The application logs detailed information about queue operations, which can be found in the application logs.

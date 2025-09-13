@@ -10,7 +10,7 @@ Sets up and manages background tasks for processing queue messages.
 
 **Key Functions:**
 - `initiate_background_tasks()`: Initializes the background tasks for processing queue messages.
-- `start_background_thread(loop)`: Starts a background thread with an asyncio event loop.
+- `start_background_thread(loop)`: Starts a background thread with an asyncio event loop using ThreadPoolExecutor.
 
 ### `rabbitmq.py`
 
