@@ -141,3 +141,39 @@ Maybe pycharm needs sudo permissions. Forget it this is too much trouble.
 Pyppeteer also is crashing, won't work with the installed version.
 
 Ok I'm pretty sure it's because I was running PyCharm through flatpak. Use the jetbrains toolbox instead.
+
+# Bookmark Manager
+
+## RabbitMQ Setup
+
+If your RabbitMQ queues were deleted and the application is stuck at "[*] Setting up RabbitMQ connection and channel", you need to recreate:
+
+1. The main queues:
+   - bookmark_manager_ingest_url
+   - bookmark_manager_summarize_url
+
+2. The dead letter queues:
+   - dead_letter_queue_bookmark_manager_ingest_url
+   - dead_letter_queue_bookmark_manager_summarize_url
+
+3. The dead letter exchange:
+   - dead_letter_exchange (type: direct)
+
+4. The bindings:
+   - Bind dead_letter_queue_bookmark_manager_ingest_url to dead_letter_exchange with routing key bookmark_manager_ingest_url
+   - Bind dead_letter_queue_bookmark_manager_summarize_url to dead_letter_exchange with routing key bookmark_manager_summarize_url
+
+5. Queue arguments:
+   - For bookmark_manager_ingest_url and bookmark_manager_summarize_url, set:
+     - x-dead-letter-exchange: dead_letter_exchange
+     - x-dead-letter-routing-key: [queue name]
+
+You can recreate these using the RabbitMQ Management UI or via the command line.
+
+## Management UI Steps:
+1. Go to the Exchanges tab and add a new exchange named 'dead_letter_exchange' with type 'direct'
+2. Go to the Queues tab and add all four queues
+3. For each main queue, go to its page and add the arguments under the "Add binding" section
+4. For each dead letter queue, add a binding to the dead_letter_exchange with the corresponding routing key
+
+After recreating all these components, restart your application.
