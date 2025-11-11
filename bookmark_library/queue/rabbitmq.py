@@ -170,7 +170,7 @@ async def setup_rabbitmq(queues: list[tuple[str, callable]]):
 
     try:
         # Robust connection handles reconnects, re-declarations, and heartbeats automatically
-        connection: aio_pika.RobustConnection = await aio_pika.connect_robust(
+        connection = await aio_pika.connect_robust(
             host=RABBITMQ_URL,
             port=RABBITMQ_PORT,
             login=RABBITMQ_USERNAME,
@@ -179,7 +179,7 @@ async def setup_rabbitmq(queues: list[tuple[str, callable]]):
         )
 
         # Create a channel
-        channel: aio_pika.RobustChannel = await connection.channel()
+        channel = await connection.channel()
 
         # Set QoS early for fair dispatch
         await channel.set_qos(prefetch_count=1)
@@ -214,13 +214,16 @@ async def setup_rabbitmq(queues: list[tuple[str, callable]]):
             logger.info(f"Consumer set up for queue: {queue_name}")
 
         # Monitor connection closure
-        def on_close(fut: asyncio.Future):
-            exc = fut.exception()
+        def on_close(sender, exc):
             if exc:
                 logger.warning(f"RabbitMQ connection closed with error: {exc}")
             else:
                 logger.info("RabbitMQ connection closed cleanly")
 
+        connection.close_callbacks.add(on_close)
+        connection.reconnect_callbacks.add(
+            lambda conn: logging.warning(f"Reconnecting...")
+        )
         logger.info("RabbitMQ setup completed successfully")
         return connection, channel
 

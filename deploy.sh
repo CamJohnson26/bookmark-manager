@@ -126,6 +126,10 @@ if ! ssh $SSH_OPTS -t $DESTINATION_SERVER "sudo systemctl enable bookmark-manage
     exit 1
 fi
 
+if ! ssh $SSH_OPTS -t $DESTINATION_SERVER "sudo systemctl stop bookmark-manager.service || true"; then
+    echo "Warning: Failed to stop existing bookmark-manager service, but continuing anyway..."
+fi
+
 if ! ssh $SSH_OPTS -t $DESTINATION_SERVER "sudo systemctl start bookmark-manager.service"; then
     echo "Error: Failed to start bookmark-manager service. Exiting."
     exit 1

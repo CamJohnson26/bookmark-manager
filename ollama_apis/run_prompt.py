@@ -5,7 +5,7 @@ from ollama import Client
 
 load_dotenv()
 
-DEFAULT_MODEL = 'llama3.1'  # Change to your preferred model
+DEFAULT_MODEL = 'gpt-oss:20b'  # Change to your preferred model
 
 client = Client(
   host=os.environ.get("OLLAMA_API_ENDPOINT"),
