@@ -163,12 +163,75 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Global variables to store queue information for reconnection
+_global_queues = []
+_global_channel = None
+_global_connection = None
+
+
+async def setup_consumers(channel, queues):
+    """Set up consumers for all queues"""
+    for queue_name, callback in queues:
+        # Dead-letter queue
+        dead_letter_queue = await channel.declare_queue(
+            f"dead_letter_queue_{queue_name}",
+            durable=True,
+        )
+
+        # Declare the dead letter exchange
+        dead_letter_exchange = await channel.declare_exchange(
+            "dead_letter_exchange",
+            aio_pika.ExchangeType.DIRECT
+        )
+
+        await dead_letter_queue.bind(dead_letter_exchange, routing_key=queue_name)
+
+        # Main queue with DLQ configuration
+        queue = await channel.declare_queue(
+            queue_name,
+            durable=True,
+            arguments={
+                "x-dead-letter-exchange": "dead_letter_exchange",
+                "x-dead-letter-routing-key": queue_name,
+            },
+        )
+
+        # Consumer
+        await queue.consume(callback)
+        logger.info(f"Consumer set up for queue: {queue_name}")
+
+
+async def on_reconnect(connection):
+    """Callback to re-establish consumers after reconnection"""
+    global _global_channel, _global_queues
+
+    logger.warning(f"Reconnected Successfully: {connection}")
+
+    try:
+        # Create a new channel
+        _global_channel = await connection.channel()
+
+        # Set QoS for fair dispatch
+        await _global_channel.set_qos(prefetch_count=1)
+
+        # Re-establish all consumers
+        await setup_consumers(_global_channel, _global_queues)
+        logger.info("All consumers re-established after reconnection")
+
+    except Exception as e:
+        logger.error(f"Error re-establishing consumers after reconnection: {e}")
+
 
 async def setup_rabbitmq(queues: list[tuple[str, callable]]):
     """Setup RabbitMQ connection, channel, queues, and consumers with robust error handling"""
+    global _global_queues, _global_channel, _global_connection
+
     logger.info("Setting up RabbitMQ connection and channel")
 
     try:
+        # Store queues globally for reconnection handling
+        _global_queues = queues
+
         # Robust connection handles reconnects, re-declarations, and heartbeats automatically
         connection = await aio_pika.connect_robust(
             host=RABBITMQ_URL,
@@ -178,40 +241,18 @@ async def setup_rabbitmq(queues: list[tuple[str, callable]]):
             heartbeat=60,
         )
 
+        # Store connection globally
+        _global_connection = connection
+
         # Create a channel
         channel = await connection.channel()
+        _global_channel = channel
 
         # Set QoS early for fair dispatch
         await channel.set_qos(prefetch_count=1)
 
-        # Declare the dead letter exchange
-        dead_letter_exchange = await channel.declare_exchange(
-            "dead_letter_exchange",
-            aio_pika.ExchangeType.DIRECT
-        )
-
-        # Set up queues and consumers
-        for queue_name, callback in queues:
-            # Dead-letter queue
-            dead_letter_queue = await channel.declare_queue(
-                f"dead_letter_queue_{queue_name}",
-                durable=True,
-            )
-            await dead_letter_queue.bind(dead_letter_exchange, routing_key=queue_name)
-
-            # Main queue with DLQ configuration
-            queue = await channel.declare_queue(
-                queue_name,
-                durable=True,
-                arguments={
-                    "x-dead-letter-exchange": "dead_letter_exchange",
-                    "x-dead-letter-routing-key": queue_name,
-                },
-            )
-
-            # Consumer
-            await queue.consume(callback)
-            logger.info(f"Consumer set up for queue: {queue_name}")
+        # Set up queues and consumers using the helper function
+        await setup_consumers(channel, queues)
 
         # Monitor connection closure
         def on_close(sender, exc):
@@ -221,9 +262,10 @@ async def setup_rabbitmq(queues: list[tuple[str, callable]]):
                 logger.info("RabbitMQ connection closed cleanly")
 
         connection.close_callbacks.add(on_close)
-        connection.reconnect_callbacks.add(
-            lambda conn: logging.warning(f"Reconnecting...")
-        )
+
+        # Use the proper reconnect callback that re-establishes consumers
+        connection.reconnect_callbacks.add(on_reconnect)
+
         logger.info("RabbitMQ setup completed successfully")
         return connection, channel
 
