@@ -6,6 +6,7 @@ every 15 minutes to verify that the application is still running.
 
 import asyncio
 import requests
+import ssl
 import os
 
 # Default to a no-op URL if not specified
@@ -18,7 +19,10 @@ async def healthcheck_ping():
     to verify that the application is still running.
     """
     try:
-        response = requests.get(HEALTHCHECK_URL, timeout=10)
+        session = requests.Session()
+        session.verify = ssl.get_default_verify_paths().cafile or ssl.get_default_verify_paths().capath
+
+        response = session.get(HEALTHCHECK_URL, timeout=10)
         print(f" [x] Healthcheck ping sent to {HEALTHCHECK_URL}, status: {response.status_code}")
         return True
     except Exception as e:
