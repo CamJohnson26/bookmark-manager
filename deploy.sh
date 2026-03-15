@@ -138,4 +138,4 @@ fi
 echo "Deployment completed successfully!"
 echo "Application is installed as a systemd service and will start automatically on boot"
 echo "Service status: ssh $DESTINATION_SERVER 'sudo systemctl status bookmark-manager.service'"
-echo "Check logs at $DESTINATION_PATH/app.log"
+echo "Check logs at journalctl"
