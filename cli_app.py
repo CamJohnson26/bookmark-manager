@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 
 from bookmark_library.bulk_ingest import bulk_ingest
+from bookmark_library.library_db.db_actions import get_all_urls
 from bookmark_library.queue.background_job import initiate_background_tasks
 from bookmark_library.queue.queue_names import INGEST_URL_QUEUE_NAME, SUMMARIZE_URL_QUEUE_NAME
 from bookmark_library.queue.rabbitmq import publish_message, retry_failed
@@ -36,6 +37,21 @@ class CLIApp(Cmd):
 
     def do_retry_summarize(self, args):
         retry_failed(SUMMARIZE_URL_QUEUE_NAME)
+
+    def do_resummarize(self, args):
+        """Queue URLs whose title or summary is NULL for reprocessing."""
+        urls = get_all_urls()
+        incomplete_urls = [
+            url["url"]
+            for url in urls
+            if url["title"] is None or url["summary"] is None
+        ]
+
+        for url in incomplete_urls:
+            publish_message(url, SUMMARIZE_URL_QUEUE_NAME)
+
+        print(f"Queued {len(incomplete_urls)} URLs for resummarization")
+
     def do_consume(self, args):
         """Consume messages from the queue."""
         print("Consuming messages from the queue")

@@ -13,6 +13,7 @@
 * Run the cli app
 * Paste your new urls into ingest.txt
 * Type bulk_ingest in the cli
+* Type `resummarize` to requeue URLs with a null title or summary
 * In a terminal window, run `python3 cli_app.py`
 * Type 'consume'. URLs will be consumed from ingest.txt and added to the database.
 * Check in the input/history file to version control.
