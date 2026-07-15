@@ -69,6 +69,13 @@ if ! ssh $SSH_OPTS -t $DESTINATION_SERVER "cd $DESTINATION_PATH && bash setup.sh
     exit 1
 fi
 
+# Verify the browser driver before installing or restarting the service.
+echo "Verifying Firefox and geckodriver..."
+if ! ssh $SSH_OPTS $DESTINATION_SERVER "command -v geckodriver && geckodriver --version && test -x /usr/bin/firefox"; then
+    echo "Error: Firefox or geckodriver is not available on the destination server. Exiting."
+    exit 1
+fi
+
 # Set up Python virtual environment and install dependencies
 echo "Setting up Python environment and installing dependencies..."
 if ! ssh $SSH_OPTS $DESTINATION_SERVER "cd $DESTINATION_PATH && \

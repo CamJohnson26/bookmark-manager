@@ -40,6 +40,7 @@
     WSJ_PASSWORD="..."  # Optional: Wall Street Journal login
     SELENIUM_PROFILE_DIR=".selenium-profile"  # Optional: persistent Firefox profile
     SELENIUM_PAGE_LOAD_TIMEOUT=60  # Optional: page load timeout in seconds
+    SELENIUM_HEADLESS=true  # Optional: run Firefox without a display
     ```
 
 ## Deployment Steps

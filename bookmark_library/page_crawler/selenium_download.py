@@ -15,6 +15,7 @@ from bookmark_library.page_crawler.wsj_login import (
 )
 
 PAGE_LOAD_TIMEOUT = int(os.getenv("SELENIUM_PAGE_LOAD_TIMEOUT", "60"))
+HEADLESS = os.getenv("SELENIUM_HEADLESS", "true").lower() in {"1", "true", "yes"}
 PROFILE_DIR = os.getenv(
     "SELENIUM_PROFILE_DIR",
     os.path.join(os.getcwd(), ".selenium-profile"),
@@ -40,6 +41,8 @@ def _get_browser():
     options = Options()
     options.binary_location = "/usr/bin/firefox"
     options.page_load_strategy = "normal"
+    if HEADLESS:
+        options.add_argument("-headless")
     options.profile = PROFILE_DIR
     _browser = webdriver.Firefox(options=options)
     _browser.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
