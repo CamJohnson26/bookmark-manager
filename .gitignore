@@ -16,3 +16,4 @@ temp.pdf
 .env
 venv
 .env.production
+.selenium-profile/

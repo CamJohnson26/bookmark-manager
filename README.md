@@ -34,8 +34,12 @@
    RABBITMQ_PORT=...
    RABBITMQ_USERNAME="..."
    RABBITMQ_PASSWORD="..."
-   HEALTHCHECK_URL="https://example.com/healthcheck"  # Optional: URL for healthcheck pings
-   ```
+    HEALTHCHECK_URL="https://example.com/healthcheck"  # Optional: URL for healthcheck pings
+    WSJ_USERNAME="..."  # Optional: Wall Street Journal login
+    WSJ_PASSWORD="..."  # Optional: Wall Street Journal login
+    SELENIUM_PROFILE_DIR=".selenium-profile"  # Optional: persistent Firefox profile
+    SELENIUM_PAGE_LOAD_TIMEOUT=60  # Optional: page load timeout in seconds
+    ```
 
 ## Deployment Steps
 1. Make the deployment script executable (if not already):
