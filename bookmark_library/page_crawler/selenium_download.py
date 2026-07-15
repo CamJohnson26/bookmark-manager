@@ -5,6 +5,7 @@ from threading import Lock
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -13,6 +14,7 @@ from bookmark_library.page_crawler.wsj_login import (
     login_if_needed,
     reset_login_state,
 )
+from bookmark_library.page_crawler.firefox_binary import get_firefox_binary
 
 PAGE_LOAD_TIMEOUT = int(os.getenv("SELENIUM_PAGE_LOAD_TIMEOUT", "60"))
 HEADLESS = os.getenv("SELENIUM_HEADLESS", "true").lower() in {"1", "true", "yes"}
@@ -20,6 +22,8 @@ PROFILE_DIR = os.getenv(
     "SELENIUM_PROFILE_DIR",
     os.path.join(os.getcwd(), ".selenium-profile"),
 )
+GECKODRIVER_PATH = os.getenv("GECKODRIVER_PATH", "/usr/local/bin/geckodriver")
+GECKODRIVER_LOG = os.getenv("GECKODRIVER_LOG", "geckodriver.log")
 
 _browser = None
 _browser_lock = Lock()
@@ -39,12 +43,17 @@ def _get_browser():
 
     os.makedirs(PROFILE_DIR, exist_ok=True)
     options = Options()
-    options.binary_location = "/usr/bin/firefox"
+    options.binary_location = get_firefox_binary()
     options.page_load_strategy = "normal"
     if HEADLESS:
         options.add_argument("-headless")
     options.profile = PROFILE_DIR
-    _browser = webdriver.Firefox(options=options)
+    service = Service(executable_path=GECKODRIVER_PATH, log_output=GECKODRIVER_LOG)
+    try:
+        _browser = webdriver.Firefox(service=service, options=options)
+    except Exception:
+        service.stop()
+        raise
     _browser.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
     return _browser
 

@@ -132,7 +132,7 @@ Ignore all the reqs and just use Python 3.9
 Actually you can't, because of https://askubuntu.com/questions/1239829/modulenotfounderror-no-module-named-distutils-util
 Going to try deleting requirements.txt and installing manually. I think part of the problem is some packages aren't compatible with 3.10, but I can't use 3.9 because of Debian.
 
-geckodriver has a stupid install process. Download the release from mozilla github, sudo chmod +x it, and drop into /usr/local/bin.
+The deployment setup installs geckodriver 0.37.0, which supports the Firefox 152 series used on the server. Selenium is pinned to 4.34.2 and the deploy script runs a headless startup smoke test before restarting the service.
 Then venv isn't gonna pick it up because it's not in the path, so you have to move geckodriver manually into the venv bin folder
 https://stackoverflow.com/questions/65318382/expected-browser-binary-location-but-unable-to-find-binary-in-default-location
 

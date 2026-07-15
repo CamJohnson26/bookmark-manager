@@ -71,7 +71,7 @@ fi
 
 # Verify the browser driver before installing or restarting the service.
 echo "Verifying Firefox and geckodriver..."
-if ! ssh $SSH_OPTS $DESTINATION_SERVER "command -v geckodriver && geckodriver --version && test -x /usr/bin/firefox"; then
+if ! ssh $SSH_OPTS $DESTINATION_SERVER "command -v geckodriver && geckodriver --version && test -x /usr/bin/firefox && command -v xdg-settings"; then
     echo "Error: Firefox or geckodriver is not available on the destination server. Exiting."
     exit 1
 fi
@@ -82,8 +82,15 @@ if ! ssh $SSH_OPTS $DESTINATION_SERVER "cd $DESTINATION_PATH && \
     python3 -m venv .venv && \
     source .venv/bin/activate && \
     pip install --upgrade pip && \
-    pip install -r requirements.txt"; then
+    pip install --upgrade --force-reinstall -r requirements.txt"; then
     echo "Error: Failed to set up Python environment or install dependencies. Exiting."
+    exit 1
+fi
+
+# Exercise the exact headless browser stack before changing the running service.
+echo "Running headless Selenium smoke test..."
+if ! ssh $SSH_OPTS $DESTINATION_SERVER "cd $DESTINATION_PATH && timeout 60s .venv/bin/python scripts/selenium_smoke_test.py"; then
+    echo "Error: Headless Firefox could not start through Selenium. Exiting."
     exit 1
 fi
 

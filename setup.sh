@@ -6,7 +6,7 @@ set -euo pipefail
 sudo DEBIAN_FRONTEND=noninteractive apt-get update
 
 # General Build
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2-dev libxslt-dev python3-dev python3-venv build-essential firefox
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2-dev libxslt-dev python3-dev python3-venv build-essential firefox xdg-utils
 
 # Psycopg
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libpq-dev
@@ -31,7 +31,7 @@ case "$(uname -m)" in
         ;;
 esac
 
-GECKODRIVER_VERSION="${GECKODRIVER_VERSION:-v0.36.0}"
+GECKODRIVER_VERSION="${GECKODRIVER_VERSION:-v0.37.0}"
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
